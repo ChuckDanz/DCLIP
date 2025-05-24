@@ -527,92 +527,7 @@ class CLIPImageDistillation(LightningModule):
             raise ValueError("Either text or image must be provided.")
 
 
-    """
 
-    # KIND OF HELPS FOR BALANCE
-    def compute_contrastive_loss(self, image_embeddings, text_embeddings, temperature=0.05):
-        image_embeddings = F.normalize(image_embeddings, dim=1)
-        text_embeddings = F.normalize(text_embeddings, dim=1)
-        
-        logits = torch.matmul(image_embeddings, text_embeddings.T) / temperature
-        batch_size = image_embeddings.shape[0]
-        labels = torch.arange(batch_size, device=self.device)
-        
-        # Calculate directional losses separately
-        loss_i2t = F.cross_entropy(logits, labels)  
-        loss_t2i = F.cross_entropy(logits.T, labels)
-        
-        # Calculate loss ratio to determine imbalance
-        ratio = loss_i2t / loss_t2i
-        
-        # Dynamic weighting based on which direction needs more help
-        if ratio > 1.2:  # Image→Text needs more help (20% worse)
-            i2t_weight = 1.5
-            t2i_weight = 0.5
-        elif ratio < 0.83:  # Text→Image needs more help (20% worse)
-            i2t_weight = 0.5
-            t2i_weight = 1.5
-        else:  # Roughly balanced
-            i2t_weight = 1.0
-            t2i_weight = 1.0
-            
-        # Apply weights to the losses
-        balanced_contrastive_loss = (i2t_weight * loss_i2t + t2i_weight * loss_t2i) / 2.0
-        
-        # Log the weights for monitoring
-        self.log("i2t_weight", i2t_weight)
-        self.log("t2i_weight", t2i_weight)
-        
-        return balanced_contrastive_loss
-    
-    
-    """
-
-
-
-    def compute_itm_loss(self, image_embeddings, text_embeddings):
-        """Image-Text Matching loss with hard negative mining"""
-        batch_size = image_embeddings.shape[0]
-        
-        # Normalize embeddings for similarity computation
-        img_norm = F.normalize(image_embeddings, dim=1)
-        txt_norm = F.normalize(text_embeddings, dim=1)
-        
-        # Compute similarity matrix for hard negative mining
-        with torch.no_grad():
-            sim_matrix = torch.matmul(img_norm, txt_norm.T)
-            sim_matrix.fill_diagonal_(-100)  # Remove positive pairs
-            
-            # Find hardest negative texts for each image
-            _, hard_txt_indices = sim_matrix.topk(1, dim=1)
-            
-            # Find hardest negative images for each text
-            _, hard_img_indices = sim_matrix.T.topk(1, dim=1)
-        
-        # Process positive pairs (matching image-text)
-        pos_features = torch.cat([image_embeddings, text_embeddings], dim=1)
-        pos_logits = self.itm_head(pos_features)
-        pos_labels = torch.ones(batch_size, dtype=torch.long, device=self.device)
-        
-        # Process hard negative pairs (image with hardest non-matching text)
-        neg_txt_embeddings = text_embeddings[hard_txt_indices.squeeze()]
-        neg_txt_features = torch.cat([image_embeddings, neg_txt_embeddings], dim=1)
-        neg_txt_logits = self.itm_head(neg_txt_features)
-        
-        # Process hard negative pairs (text with hardest non-matching image)
-        neg_img_embeddings = image_embeddings[hard_img_indices.squeeze()]
-        neg_img_features = torch.cat([neg_img_embeddings, text_embeddings], dim=1)
-        neg_img_logits = self.itm_head(neg_img_features)
-        
-        # Combine all logits and labels
-        itm_logits = torch.cat([pos_logits, neg_txt_logits, neg_img_logits])
-        itm_labels = torch.cat([
-            pos_labels,
-            torch.zeros(batch_size, dtype=torch.long, device=self.device),
-            torch.zeros(batch_size, dtype=torch.long, device=self.device)
-        ])
-        
-        return F.cross_entropy(itm_logits, itm_labels)
     #try hard negative mining later
     def compute_contrastive_loss(self, image_embeddings, text_embeddings, temperature=0.05):
         """
@@ -708,26 +623,6 @@ class CLIPImageDistillation(LightningModule):
             student_text_embeddings
         )
 
-        # ----- ITM LOSS -----
-        #itm_loss = self.compute_itm_loss(student_image_embeddings, student_text_embeddings)
-        
-        # Start with smaller ITM weight and increase gradually
-        #itm_weight = 1.5 #min(1.0, 0.5 + self.current_epoch * 0.1)
-
-        # Add CLIP preservation component
-        """
-        with torch.no_grad():
-            original_clip_embeddings = self.original_clip.get_image_features(
-                pixel_values=images.to(self.device)
-            ).float()
-        
-        
-        """
-        
-        #preservation_weight = 0.3  # Start with this, adjust as needed
-        #preservation_loss = self.cosine_distillation_loss(
-           # student_image_embeddings, original_clip_embeddings
-        #)
         
         # ----- COMBINE LOSSES -----
         loss = loss_image + loss_text + 1.0 * contrastive_loss #+ itm_weight * itm_loss + preservation_weight * preservation_loss
@@ -770,27 +665,6 @@ class CLIPImageDistillation(LightningModule):
             student_image_embeddings, 
             student_text_embeddings
         )
-
-        # ----- ITM LOSS -----
-        #itm_loss = self.compute_itm_loss(student_image_embeddings, student_text_embeddings)
-        
-        # Start with smaller ITM weight and increase gradually
-        #itm_weight = 1.5 #min(1.0, 0.5 + self.current_epoch * 0.1)
-
-        # Add CLIP preservation component
-        """
-        with torch.no_grad():
-            original_clip_embeddings = self.original_clip.get_image_features(
-                pixel_values=images.to(self.device)
-            ).float()
-        
-        
-        """
-        
-        #preservation_weight = 0.3  # Start with this, adjust as needed
-        #preservation_loss = self.cosine_distillation_loss(
-           # student_image_embeddings, original_clip_embeddings
-        #)
         
         # ----- COMBINE LOSSES -----
         loss = loss_image + loss_text + 1.0 * contrastive_loss #+ itm_weight * itm_loss + preservation_weight * preservation_loss
@@ -809,12 +683,12 @@ class CLIPImageDistillation(LightningModule):
 
     
     def train_dataloader(self) -> DataLoader:
-        dataset = MultiModalDataset(self.hparams.train_file, self.preprocess, cache_dir="C:/Users/Daniel Csizmadia/Desktop/TokenizerCLIP/teacher_cache", cache_filename="teacher_100k_train_precache.pkl")
+        dataset = MultiModalDataset(self.hparams.train_file, self.preprocess, cache_dir="PATH/TO/CACHE/DIR/teacher_cache", cache_filename="teacher_100k_train_precache.pkl") #Change name accordingly
         return DataLoader(dataset, batch_size=self.hparams.eval_batch_size, num_workers=0, pin_memory=True, shuffle=True, persistent_workers=False, collate_fn=MultiModalDataset.custom_collate_fn)
     
     def val_dataloader(self) -> DataLoader:
         if hasattr(self.hparams, 'val_file') and self.hparams.val_file:
-            dataset = MultiModalDataset(self.hparams.val_file, self.preprocess, cache_dir="C:/Users/Daniel Csizmadia/Desktop/TokenizerCLIP/teacher_cache", cache_filename="teacher_10k_val_precache.pkl")
+            dataset = MultiModalDataset(self.hparams.val_file, self.preprocess, cache_dir="PATH/TO/CACHE/DIR/teacher_cache", cache_filename="teacher_10k_val_precache.pkl") #CHange name accordingly
             return DataLoader(dataset, batch_size=self.hparams.eval_batch_size, num_workers=0, pin_memory=False, persistent_workers=False, collate_fn=MultiModalDataset.custom_collate_fn)
         return None
     
@@ -832,14 +706,6 @@ class CLIPImageDistillation(LightningModule):
             self.teacher.load_caches(knn_cache_path=self.train_knn_cache_path)
             print(f"Switched back to training KNN cache")
     
-    def on_epoch_start(self):
-        """
-        if self.current_epoch == 2:
-            for param in self.itm_head.parameters():
-                param.requires_grad = True
-            print("Unfroze ITM head parameters")
-        
-        """
         
     
     @staticmethod

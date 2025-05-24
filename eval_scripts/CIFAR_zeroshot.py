@@ -14,7 +14,7 @@ from CLIP_image_distillation import CLIPImageDistillation
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 # === Configuration ===
-checkpoint_path = "C:/Users/Daniel Csizmadia/Desktop/new_checkpoints/epoch-epoch=01-train_loss=1.01PAPERViT-L.ckpt"
+checkpoint_path = "PATH/TO/CUSTOM/MODEL/epoch-epoch=01-train_loss=1.01PAPERViT-L.ckpt"
 data_dir = "./data"  # Where to store the CIFAR datasets
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print(f"Using device: {device}")

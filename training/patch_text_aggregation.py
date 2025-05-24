@@ -48,7 +48,7 @@ class CrossModalAttention(nn.Module):
 
 class PatchTextAggregation(nn.Module):
     def __init__(self, 
-                 embed_dim=768,  #FIX THIS IF GOING FROM VIT L TO VIT B
+                 embed_dim=512,  #FIX THIS IF GOING FROM VIT L TO VIT B
                  num_heads=8, 
                  similarity_threshold=0.85,
                  projection_model_path=None,

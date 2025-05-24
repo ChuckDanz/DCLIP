@@ -12,7 +12,7 @@ class CLIPTextTokenizer:
                  bert_model_name="bert-base-uncased",
                  max_chunk_size=77, 
                  device="cpu",
-                 projection_path= "C:/Users/Daniel Csizmadia/Desktop/TokenizerCLIP/TokenizerCLIP/trained_models/PlaecHOlder", #projection_model_weighted.pth
+                 projection_path= "/PlaecHolder", #projection_model_weighted.pth
                  complexity_threshold=0.35):
         """
         Initializes the CLIP tokenizer with complexity scoring.
