@@ -12,7 +12,6 @@ from transformers import CLIPProcessor, CLIPModel
 # Import your custom model
 from CLIP_image_distillation import CLIPImageDistillation
 
-from SFTDefaultCLIP import CLIPSimpleFineTune
 
 def calculate_retrieval_metrics(similarity_matrix, image_ids, caption_image_ids):
     """Calculate metrics in a more memory-efficient way"""
@@ -93,7 +92,7 @@ def evaluate_model(model_name, device, max_images=1000):
     print(f"\n=== Evaluating {model_name} Model ===")
     
     # === Load Dataset ===
-    DATASET_JSON = "C:/Users/Daniel Csizmadia/Desktop/TokenizerCLIP/flickr30k_test_karpathy.json" #coco_flickr_format.json #flickr30k_standard.json
+    DATASET_JSON = "PATH/TO/JSON/flickr30k_test_karpathy.json" #coco_flickr_format.json #flickr30k_standard.json
     with open(DATASET_JSON, "r") as f: #flickr30k_test_karpathy.json #coco_test_karpathy.json
         dataset = json.load(f)
     
@@ -111,7 +110,7 @@ def evaluate_model(model_name, device, max_images=1000):
     clip_processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch16")
     
     if model_name == "custom":
-        checkpoint_path = "C:/Users/Daniel Csizmadia/Desktop/TokenizerCLIP/TokenizerCLIP/models/checkpoints/epoch-epoch=01-train_loss=3.01.ckpt" #C:/Users/Daniel Csizmadia/Desktop/TokenizerCLIP/TokenizerCLIP/models/checkpoints/epoch-epoch=04-train_loss=1.81.ckpt 
+        checkpoint_path = "PATH/TO/CUSTOM/CHECKPOINT/epoch-epoch=01-train_loss=3.01.ckpt" 
         try:
              # Use the correct model class based on the checkpoint path
             if "sft_baseline" in checkpoint_path:

@@ -102,9 +102,9 @@ def main(args):
     # Initialize your teacher model
     teacher = PatchTextAggregation(
         similarity_threshold=0.85,
-        projection_model_path="C:/Users/Daniel Csizmadia/Desktop/TokenizerCLIP/TokenizerCLIP/ImageProjectionModuleDev/TrainedProjectionModule/PlaceHolder", #Cosine&ContrastiveLossImageProjectionModule/proj_module_best.pth
-        faiss_index_path="C:/Users/Daniel Csizmadia/Desktop/TokenizerCLIP/TokenizerCLIP/trained_models/PlaceHolder", #faiss_clip_index.idx
-        embeddings_json_path="C:/Users/Daniel Csizmadia/Desktop/TokenizerCLIP/TokenizerCLIP/trained_models/clip_embeddings.json"
+        projection_model_path="", #Cosine&ContrastiveLossImageProjectionModule/proj_module_best.pth
+        faiss_index_path="", #faiss_clip_index.idx
+        embeddings_json_path=""
     ).to(device)
 
     print("\n=== CLIP MODEL DEBUG INFO ===")

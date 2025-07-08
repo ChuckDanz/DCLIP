@@ -177,7 +177,7 @@ def precache_knn(json_file, yolo_cache=None, cache_dir="./cache",
 
 if __name__ == "__main__":
     # Path to your new teacher dataset
-    json_file = "C:/Users/Daniel Csizmadia/Desktop/TokenizerCLIP/teacher_dataset/teacher_10k_val.json"
+    json_file = "PATH/TO/YOUR NEW DATASET/teacher_10k_val.json" # EDIT THIS HERE
     
     # Create output directory
     cache_dir = "./teacher_cache"
@@ -192,9 +192,9 @@ if __name__ == "__main__":
     precache_knn(json_file, 
                 yolo_cache=yolo_cache,
                 cache_dir=cache_dir,
-                projection_model_path="C:/Users/Daniel Csizmadia/Desktop/TokenizerCLIP/TokenizerCLIP/ImageProjectionModuleDev/TrainedProjectionModule/PLACEHOLDER", #NewTrainedProjectionModule/proj_module_best.pth
-                faiss_index_path="C:/Users/Daniel Csizmadia/Desktop/TokenizerCLIP/TokenizerCLIP/trained_models/faiss_clip_index.idx",
-                embeddings_json_path="C:/Users/Daniel Csizmadia/Desktop/TokenizerCLIP/TokenizerCLIP/trained_models/clip_embeddings.json")
+                projection_model_path="", #NewTrainedProjectionModule/proj_module_best.pth
+                faiss_index_path="",
+                embeddings_json_path="")
                 
     print("Caching complete!")
 
